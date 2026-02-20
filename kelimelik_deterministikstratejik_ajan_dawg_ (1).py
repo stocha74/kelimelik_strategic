@@ -223,6 +223,50 @@ def draw_from_bag(bag: List[str], k: int = 7, rng=None) -> Tuple[List[str], List
     return drawn, bag2
 
 
+def reduce_bag_with_known_letters(
+    harf_stogu: Dict[str, int],
+    board: np.ndarray,
+    bizim_eldeki_harfler: str,
+) -> List[str]:
+    """
+    Bilinen bilgilere göre kalan bag'i üretir:
+      - toplam stoktan başlar,
+      - tahtadaki açık harfleri düşer,
+      - bizim raftaki harfleri düşer.
+
+    Not: Rakibin eldeki harfleri bilinmediği için ayrıca düşülemez.
+    """
+    kalan = Counter(stock_to_bag_list(harf_stogu))
+
+    # Tahtada görünen harfler artık bag'de değildir.
+    for cell in board.ravel():
+        if cell != "":
+            kalan[cell] -= 1
+
+    # Bizim raftaki harfler de bag'de değildir.
+    for ch in (bizim_eldeki_harfler or ""):
+        kalan[ch] -= 1
+
+    bag: List[str] = []
+    for harf, adet in kalan.items():
+        if adet > 0:
+            bag.extend([harf] * int(adet))
+    return bag
+
+
+def remove_letters_from_bag(bag: List[str], letters: List[str]) -> List[str]:
+    """Verilen harfleri bag'den çokluk koruyarak düşer."""
+    cnt_bag = Counter(bag)
+    cnt_drop = Counter(letters or [])
+    kalan = cnt_bag - cnt_drop
+
+    out: List[str] = []
+    for harf, adet in kalan.items():
+        if adet > 0:
+            out.extend([harf] * int(adet))
+    return out
+
+
 # In[8]:
 
 
@@ -645,8 +689,14 @@ def monte_carlo_en_iyi_hamle(
     tum_skorlar = []
     en_iyi_hamle = None
 
-    # Simülasyon başlangıcındaki "kalan stok" (bag). Dışarıdan verilmezse harf_stogu'ndan türetilir.
-    base_bag = bag_letters_current if bag_letters_current is not None else stock_to_bag_list(harf_stogu)
+    # Simülasyon başlangıcındaki "kalan stok" (bag).
+    # - Dışarıdan verildiyse onu kullan.
+    # - Verilmediyse, oyunda tüketilmiş bilinen harfleri (tahta + bizim raf) düşerek tahmini bag üret.
+    base_bag = (
+        bag_letters_current[:]
+        if bag_letters_current is not None
+        else reduce_bag_with_known_letters(harf_stogu, board, bizim_eldeki_harfler)
+    )
 
     for aday in adaylar:
         kelime, x_koord, y_koord, orient, _bizim_puan, _, _, _ = aday
@@ -672,12 +722,16 @@ def monte_carlo_en_iyi_hamle(
         bizim_puan = float(sonuc_biz["puan"])
         aday_board = sonuc_biz["board"]  # rakip bu board üzerinde oynayacak
 
+        # Bizim oynadığımız harfler bag'de tekrar bulunmamalı (özellikle dışarıdan bag verildiyse).
+        # Not: Engine çıktısında "stoktan_dus" bizim raftan kullandığımız yeni harflerdir.
+        aday_bag = remove_letters_from_bag(base_bag, sonuc_biz.get("stoktan_dus", []))
+
         # --- Rakip simülasyonları ---
         rakip_puanlar: List[float] = []
         aday_board_key = board_key(aday_board)  # board_key'i aday başına bir kez çıkar
 
         for _ in range(rakip_simulasyon_sayisi):
-            rakip_raf_list, _bag_sim = draw_from_bag(base_bag[:], k=raf_boyutu, rng=rng)
+            rakip_raf_list, _bag_sim = draw_from_bag(aday_bag[:], k=raf_boyutu, rng=rng)
             if not rakip_raf_list:
                 rakip_puanlar.append(0.0)
                 continue
