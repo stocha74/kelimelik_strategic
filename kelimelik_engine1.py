@@ -1055,12 +1055,16 @@ def kelime_yerlestir_ve_puanla(kelime, x_koord, y_koord, orientation, board,taht
     }
     
        
+    # --- ORIENTATION NORMALİZASYONU ---
+    ori = str(orientation).strip().lower()
+    yatay_mi = ori.startswith("h")
+
     # Harf puanları ve tahta çarpanları sabit olarak kullanılacak
     #from kelimelik_engine1 import harf_puanlari, tahta_puanlari2
 
     # --- Yerleşim Kontrolü ---
     kontrol_koordinatlar = []
-    if orientation.lower() == "h":
+    if yatay_mi:
         if x_koord + len(kelime) > 15:
             return 3  # sınır dışı
         for n in range(x_koord, x_koord + len(kelime)):
@@ -1077,7 +1081,7 @@ def kelime_yerlestir_ve_puanla(kelime, x_koord, y_koord, orientation, board,taht
 
     kontrol_koordinatlar = [(x, y) for x, y in kontrol_koordinatlar if 0 <= x < 15 and 0 <= y < 15]
     checkdigit = any(board[y][x] != "" for x, y in kontrol_koordinatlar)
-    if not checkdigit and all(board[y_koord][x_koord + i] == "" if orientation.lower() == "h" else board[y_koord + i][x_koord] == "" for i in range(len(kelime))):
+    if not checkdigit and all(board[y_koord][x_koord + i] == "" if yatay_mi else board[y_koord + i][x_koord] == "" for i in range(len(kelime))):
         return 1  # başka kelimeye değmiyor
 
     # --- Yerleştirme ve stok belirleme ---
@@ -1092,7 +1096,7 @@ def kelime_yerlestir_ve_puanla(kelime, x_koord, y_koord, orientation, board,taht
             stokindis.append("1")
         else:
             return 2  # çakışma var
-        if orientation.lower() == "h":
+        if yatay_mi:
             x += 1
         else:
             y += 1
@@ -1102,7 +1106,7 @@ def kelime_yerlestir_ve_puanla(kelime, x_koord, y_koord, orientation, board,taht
     for i, harf in enumerate(kelime):
         if stokindis[i] == "0":
             board[y][x] = harf
-        if orientation.lower() == "h":
+        if yatay_mi:
             x += 1
         else:
             y += 1
@@ -1623,10 +1627,14 @@ def kelime_yerlestir_ve_puanla4(kelime, x_koord, y_koord, orientation, board, ta
     # Orijinal kelime ve uzunluğunu sakla
     orijinal_kelime = kelime
     orijinal_uzunluk = len(kelime)
+
+    # --- ORIENTATION NORMALİZASYONU ---
+    ori = str(orientation).strip().lower()
+    yatay_mi = ori.startswith("h")
     
     # --- Yerleşim Kontrolü ---
     kontrol_koordinatlar = []
-    if orientation.lower() == "h":
+    if yatay_mi:
         if x_koord + orijinal_uzunluk > 15:
             return 3  # sınır dışı
         for n in range(x_koord, x_koord + orijinal_uzunluk):
@@ -1643,7 +1651,7 @@ def kelime_yerlestir_ve_puanla4(kelime, x_koord, y_koord, orientation, board, ta
 
     kontrol_koordinatlar = [(x, y) for x, y in kontrol_koordinatlar if 0 <= x < 15 and 0 <= y < 15]
     checkdigit = any(board[y][x] != "" for x, y in kontrol_koordinatlar)
-    if not checkdigit and all(board[y_koord][x_koord + i] == "" if orientation.lower() == "h" else board[y_koord + i][x_koord] == "" for i in range(orijinal_uzunluk)):
+    if not checkdigit and all(board[y_koord][x_koord + i] == "" if yatay_mi else board[y_koord + i][x_koord] == "" for i in range(orijinal_uzunluk)):
         return 1  # başka kelimeye değmiyor
 
     # --- Yerleştirme ve stok belirleme ---
@@ -1658,7 +1666,7 @@ def kelime_yerlestir_ve_puanla4(kelime, x_koord, y_koord, orientation, board, ta
             stokindis.append("1")
         else:
             return 2  # çakışma var
-        if orientation.lower() == "h":
+        if yatay_mi:
             x += 1
         else:
             y += 1
@@ -1672,14 +1680,14 @@ def kelime_yerlestir_ve_puanla4(kelime, x_koord, y_koord, orientation, board, ta
     for i, harf in enumerate(orijinal_kelime):
         if stokindis[i] == "0":
             board[y][x] = harf
-        if orientation.lower() == "h":
+        if yatay_mi:
             x += 1
         else:
             y += 1
 
     # --- Kelimenin ÖNCESİNDEKİ harfleri bul ---
     on_ek = []
-    if orientation.lower() == "h":
+    if yatay_mi:
         x_bas = x_koord - 1
         while x_bas >= 0 and board[y_koord][x_bas] != "":
             on_ek.insert(0, board[y_koord][x_bas])
@@ -1694,7 +1702,7 @@ def kelime_yerlestir_ve_puanla4(kelime, x_koord, y_koord, orientation, board, ta
 
     # --- Kelimenin SONUNDAKİ harfleri bul ---
     son_ek = []
-    if orientation.lower() == "h":
+    if yatay_mi:
         x_end = x_koord + orijinal_uzunluk
         while x_end < 15 and board[y_koord][x_end] != "":
             son_ek.append(board[y_koord][x_end])
@@ -1711,7 +1719,7 @@ def kelime_yerlestir_ve_puanla4(kelime, x_koord, y_koord, orientation, board, ta
     tam_kelime = "".join(on_ek) + orijinal_kelime + "".join(son_ek)
     
     # Koordinatları güncelle
-    if orientation.lower() == "h":
+    if yatay_mi:
         x_koord_updated = x_koord - len(on_ek)
         y_koord_updated = y_koord
     else:
@@ -1950,7 +1958,7 @@ def kelime_yerlestir_ve_puanla5(kelime, x_koord, y_koord, orientation, board, ta
     yatay_mi = ori.startswith("h")   # 'h' veya 'horizontal' -> yata
 
     kontrol_koordinatlar = []
-    #if orientation.lower() == "h":
+    #if yatay_mi:
     if yatay_mi:
         if x_koord + orijinal_uzunluk > 15:
             return 3
@@ -1968,7 +1976,7 @@ def kelime_yerlestir_ve_puanla5(kelime, x_koord, y_koord, orientation, board, ta
 
     kontrol_koordinatlar = [(x, y) for x, y in kontrol_koordinatlar if 0 <= x < 15 and 0 <= y < 15]
     checkdigit = any(board[y][x] != "" for x, y in kontrol_koordinatlar)
-    if not checkdigit and all(board[y_koord][x_koord + i] == "" if orientation.lower() == "h" else board[y_koord + i][x_koord] == "" for i in range(orijinal_uzunluk)):
+    if not checkdigit and all(board[y_koord][x_koord + i] == "" if yatay_mi else board[y_koord + i][x_koord] == "" for i in range(orijinal_uzunluk)):
         return 1
 
     stoktan_dus = []
@@ -1982,7 +1990,7 @@ def kelime_yerlestir_ve_puanla5(kelime, x_koord, y_koord, orientation, board, ta
             stokindis.append("1")
         else:
             return 2
-        if orientation.lower() == "h":
+        if yatay_mi:
             x += 1
         else:
             y += 1
@@ -1994,13 +2002,13 @@ def kelime_yerlestir_ve_puanla5(kelime, x_koord, y_koord, orientation, board, ta
     for i, harf in enumerate(orijinal_kelime):
         if stokindis[i] == "0":
             board[y][x] = harf
-        if orientation.lower() == "h":
+        if yatay_mi:
             x += 1
         else:
             y += 1
 
     on_ek = []
-    if orientation.lower() == "h":
+    if yatay_mi:
         x_bas = x_koord - 1
         while x_bas >= 0 and board[y_koord][x_bas] != "":
             on_ek.insert(0, board[y_koord][x_bas])
@@ -2014,7 +2022,7 @@ def kelime_yerlestir_ve_puanla5(kelime, x_koord, y_koord, orientation, board, ta
             y_bas -= 1
 
     son_ek = []
-    if orientation.lower() == "h":
+    if yatay_mi:
         x_end = x_koord + orijinal_uzunluk
         while x_end < 15 and board[y_koord][x_end] != "":
             son_ek.append(board[y_koord][x_end])
@@ -2029,7 +2037,7 @@ def kelime_yerlestir_ve_puanla5(kelime, x_koord, y_koord, orientation, board, ta
 
     tam_kelime = "".join(on_ek) + orijinal_kelime + "".join(son_ek)
 
-    if orientation.lower() == "h":
+    if yatay_mi:
         x_koord_updated = x_koord - len(on_ek)
         y_koord_updated = y_koord
     else:
@@ -2049,7 +2057,7 @@ def kelime_yerlestir_ve_puanla5(kelime, x_koord, y_koord, orientation, board, ta
     for i, kel in enumerate(olusan_kelimeler):
         if len(kel) == 1 and stokindis[i] == "0":  # sadece tek harfli olanlar ve yeni yerleştirilenler
             tek_harf_koordinatlari.append((x, y))
-        if orientation.lower() == "h":
+        if yatay_mi:
             x += 1
         else:
             y += 1
