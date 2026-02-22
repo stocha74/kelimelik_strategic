@@ -1055,6 +1055,10 @@ def kelime_yerlestir_ve_puanla(kelime, x_koord, y_koord, orientation, board,taht
     }
     
        
+    # --- ORIENTATION NORMALİZASYONU ---
+    ori = str(orientation).strip().lower()
+    yatay_mi = ori.startswith("h")
+
     # Harf puanları ve tahta çarpanları sabit olarak kullanılacak
     #from kelimelik_engine1 import harf_puanlari, tahta_puanlari2
 
@@ -1077,7 +1081,7 @@ def kelime_yerlestir_ve_puanla(kelime, x_koord, y_koord, orientation, board,taht
 
     kontrol_koordinatlar = [(x, y) for x, y in kontrol_koordinatlar if 0 <= x < 15 and 0 <= y < 15]
     checkdigit = any(board[y][x] != "" for x, y in kontrol_koordinatlar)
-    if not checkdigit and all(board[y_koord][x_koord + i] == "" if orientation.lower() == "h" else board[y_koord + i][x_koord] == "" for i in range(len(kelime))):
+    if not checkdigit and all(board[y_koord][x_koord + i] == "" if yatay_mi else board[y_koord + i][x_koord] == "" for i in range(len(kelime))):
         return 1  # başka kelimeye değmiyor
 
     # --- Yerleştirme ve stok belirleme ---
@@ -1623,6 +1627,10 @@ def kelime_yerlestir_ve_puanla4(kelime, x_koord, y_koord, orientation, board, ta
     # Orijinal kelime ve uzunluğunu sakla
     orijinal_kelime = kelime
     orijinal_uzunluk = len(kelime)
+
+    # --- ORIENTATION NORMALİZASYONU ---
+    ori = str(orientation).strip().lower()
+    yatay_mi = ori.startswith("h")
     
     # --- Yerleşim Kontrolü ---
     kontrol_koordinatlar = []
